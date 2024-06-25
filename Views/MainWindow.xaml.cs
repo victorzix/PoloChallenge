@@ -32,7 +32,21 @@ public partial class MainWindow : Window
     {
         try
         {
-            await _mainViewModel.LoadExpectativasAsync();
+            if (IndicadorComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Content != null)
+            {
+                string selectedValue = selectedItem.Content.ToString();
+                if (selectedValue != "Escolha um Indicador")
+                {
+                    _mainViewModel._filter = selectedValue;
+                }
+                else
+                {
+                    _mainViewModel._filter = string.Empty;
+                }
+            }
+            
+            _mainViewModel.ResetPage();
+            await _mainViewModel.LoadExpectativasAsync(_mainViewModel._filter);
         }
         catch (Exception ex)
         {
@@ -61,19 +75,6 @@ public partial class MainWindow : Window
         catch (Exception ex)
         {
             MessageBox.Show($"Erro: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-    
-    private void ComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (sender is ComboBox comboBox)
-        {
-            var selectedItem = comboBox.SelectedItem as ComboBoxItem;
-            if (selectedItem != null)
-            {
-                string selectedValue = selectedItem.Content.ToString();
-                MessageBox.Show($"Indicador selecionado: {selectedValue}", "Seleção de Indicador", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
         }
     }
 }

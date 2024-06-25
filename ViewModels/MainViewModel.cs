@@ -11,6 +11,7 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly IApiService _expectativaService;
     private int _currentPage;
     private const int PageSize = 10;
+    public string _filter = "";
     public ObservableCollection<ExpectativaMercadoMensal> Expectativas { get; }
 
     public MainViewModel(IApiService expectativaService)
@@ -30,9 +31,9 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public async Task LoadExpectativasAsync(int skip = 0)
+    public async Task LoadExpectativasAsync(string filter = "", int skip = 0)
     {
-        var expectativas = await _expectativaService.GetExpectativasAsync(skip.ToString());
+        var expectativas = await _expectativaService.GetExpectativasAsync(filter, skip.ToString());
         Expectativas.Clear();
         foreach (var expectativa in expectativas)
         {
@@ -40,10 +41,15 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public void ResetPage()
+    {
+        CurrentPage = 1;
+    }
+    
     public async Task NextPageAsync()
     {
         CurrentPage++;
-        await LoadExpectativasAsync((CurrentPage - 1) * PageSize);
+        await LoadExpectativasAsync(_filter, (CurrentPage - 1) * PageSize);
     }
 
     public async Task PreviousPageAsync()
@@ -51,7 +57,7 @@ public class MainViewModel : INotifyPropertyChanged
         if (CurrentPage > 1)
         {
             CurrentPage--;
-            await LoadExpectativasAsync((CurrentPage - 1) * PageSize);
+            await LoadExpectativasAsync(_filter, (CurrentPage - 1) * PageSize);
         }
     }
 

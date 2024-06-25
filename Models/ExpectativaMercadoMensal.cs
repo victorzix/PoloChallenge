@@ -10,6 +10,6 @@ public class ExpectativaMercadoMensal
     public double DesvioPadrao { get; set; }
     public double Minimo { get; set; }
     public double Maximo { get; set; }
-    public int NumeroRespondentes { get; set; }
+    public int? NumeroRespondentes { get; set; }
     public int BaseCalculo { get; set; }
 }
