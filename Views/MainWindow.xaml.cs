@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -29,30 +30,95 @@ public partial class MainWindow : Window
     }
 
     private async void LoadData(object sender, RoutedEventArgs e)
-    {
-        try
         {
-            if (IndicadorComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Content != null)
+            try
             {
-                string selectedValue = selectedItem.Content.ToString();
-                if (selectedValue != "Escolha um Indicador")
+                if (IndicadorComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Content != null)
                 {
-                    _mainViewModel._filter = selectedValue;
+                    string selectedValue = selectedItem.Content.ToString();
+                    if (selectedValue != "Escolha um Indicador")
+                    {
+                        _mainViewModel._filter = selectedValue;
+                    }
+                    else
+                    {
+                        _mainViewModel._filter = string.Empty;
+                    }
                 }
-                else
+
+                string startDate = StartDateTextBox.Text;
+                string endDate = EndDateTextBox.Text;
+
+                string startErrorMessage = string.Empty;
+                string endErrorMessage = string.Empty;
+
+                bool isStartDateValid = ValidateDate(startDate, out startErrorMessage);
+                bool isEndDateValid = ValidateDate(endDate, out endErrorMessage);
+
+                if (!isStartDateValid || !isEndDateValid)
                 {
-                    _mainViewModel._filter = string.Empty;
+                    ErrorMessageTextBlock.Text = $"{startErrorMessage} {endErrorMessage}";
+                    return;
+                }
+
+                _mainViewModel.ResetPage();
+                await _mainViewModel.LoadExpectativasAsync(_mainViewModel._filter, startDate, endDate);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erro: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private bool ValidateDate(string date, out string errorMessage)
+        {
+            errorMessage = string.Empty;
+
+            if (string.IsNullOrEmpty(date))
+                return true;
+
+            if (!DateTime.TryParseExact(date, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
+            {
+                errorMessage = "Data inválida. ";
+                return false;
+            }
+
+            if (parsedDate > DateTime.Today)
+            {
+                errorMessage = "Data não pode ser futura. ";
+                return false;
+            }
+
+            return true;
+        }
+
+        private void DateTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            e.Handled = !IsTextAllowed(e.Text);
+
+            TextBox textBox = sender as TextBox;
+            if (textBox != null)
+            {
+                string text = textBox.Text;
+
+                if (e.Text.Length > 0)
+                {
+                    text += e.Text;
+                }
+
+                if (text.Length == 2 || text.Length == 5)
+                {
+                    textBox.Text = text + "/";
+                    textBox.CaretIndex = textBox.Text.Length;
                 }
             }
-            
-            _mainViewModel.ResetPage();
-            await _mainViewModel.LoadExpectativasAsync(_mainViewModel._filter);
         }
-        catch (Exception ex)
+
+        private static bool IsTextAllowed(string text)
         {
-            MessageBox.Show($"Erro: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+            Regex regex = new Regex("[^0-9]+"); // Somente números
+            return !regex.IsMatch(text);
         }
-    }
 
     private async void NextPageClick(object sender, RoutedEventArgs e)
     {
