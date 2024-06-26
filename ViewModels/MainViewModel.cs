@@ -10,10 +10,11 @@ public class MainViewModel : INotifyPropertyChanged
 {
     private readonly IApiService _expectativaService;
     private int _currentPage;
-    private const int PageSize = 10;
+    private const int PageSize = 100;
     public string _filter = "";
     public string _startDate = "";
     public string _endDate = "";
+    private bool _isBusy;
     public ObservableCollection<ExpectativaMercadoMensal> Expectativas { get; }
 
     public MainViewModel(IApiService expectativaService)
@@ -33,13 +34,44 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    public bool IsBusy
+    {
+        get => _isBusy;
+        set
+        {
+            _isBusy = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    private bool _hasData;
+
+    public bool HasData
+    {
+        get => _hasData;
+        set
+        {
+            _hasData = value;
+            OnPropertyChanged();
+        }
+    }
+
     public async Task LoadExpectativasAsync(string filter = "", string startDate = null, string endDate = null, int skip = 0)
     {
-        var expectativas = await _expectativaService.GetExpectativasAsync(filter, startDate, endDate, skip.ToString());
-        Expectativas.Clear();
-        foreach (var expectativa in expectativas)
+        try
         {
-            Expectativas.Add(expectativa);
+            IsBusy = true;
+            var expectativas = await _expectativaService.GetExpectativasAsync(filter, startDate, endDate, skip.ToString());
+            Expectativas.Clear();
+            foreach (var expectativa in expectativas)
+            {
+                Expectativas.Add(expectativa);
+            }
+            HasData = Expectativas.Any();
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 

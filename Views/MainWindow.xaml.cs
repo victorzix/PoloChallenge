@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ClosedXML.Excel;
+using Microsoft.Win32;
 using PoloChallenge.Services;
 using PoloChallenge.ViewModels;
 
@@ -30,95 +33,109 @@ public partial class MainWindow : Window
     }
 
     private async void LoadData(object sender, RoutedEventArgs e)
+    {
+        try
         {
-            try
+            if (IndicadorComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Content != null)
             {
-                if (IndicadorComboBox.SelectedItem is ComboBoxItem selectedItem && selectedItem.Content != null)
+                string selectedValue = selectedItem.Content.ToString();
+                if (selectedValue != "Escolha um Indicador")
                 {
-                    string selectedValue = selectedItem.Content.ToString();
-                    if (selectedValue != "Escolha um Indicador")
-                    {
-                        _mainViewModel._filter = selectedValue;
-                    }
-                    else
-                    {
-                        _mainViewModel._filter = string.Empty;
-                    }
+                    _mainViewModel._filter = selectedValue;
                 }
-
-                string startDate = StartDateTextBox.Text;
-                string endDate = EndDateTextBox.Text;
-
-                string startErrorMessage = string.Empty;
-                string endErrorMessage = string.Empty;
-
-                bool isStartDateValid = ValidateDate(startDate, out startErrorMessage);
-                bool isEndDateValid = ValidateDate(endDate, out endErrorMessage);
-
-                if (!isStartDateValid || !isEndDateValid)
+                else
                 {
-                    ErrorMessageTextBlock.Text = $"{startErrorMessage} {endErrorMessage}";
-                    return;
+                    _mainViewModel._filter = string.Empty;
                 }
-
-                _mainViewModel.ResetPage();
-                await _mainViewModel.LoadExpectativasAsync(_mainViewModel._filter, startDate, endDate);
             }
-            catch (Exception ex)
+
+            string startDate = StartDateTextBox.Text;
+            string endDate = EndDateTextBox.Text;
+
+            string startErrorMessage = string.Empty;
+            string endErrorMessage = string.Empty;
+
+            bool isStartDateValid = ValidateDate(startDate, out startErrorMessage);
+            bool isEndDateValid = ValidateDate(endDate, out endErrorMessage);
+
+            if (!isStartDateValid || !isEndDateValid)
             {
-                MessageBox.Show($"Erro: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+                ErrorMessageTextBlock.Text = $"{startErrorMessage} {endErrorMessage}";
+                return;
             }
+
+            _mainViewModel.ResetPage();
+            await _mainViewModel.LoadExpectativasAsync(_mainViewModel._filter, startDate, endDate);
         }
-
-        private bool ValidateDate(string date, out string errorMessage)
+        catch (Exception ex)
         {
-            errorMessage = string.Empty;
+            MessageBox.Show($"Erro: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
-            if (string.IsNullOrEmpty(date))
-                return true;
+    private bool ValidateDate(string date, out string errorMessage)
+    {
+        errorMessage = string.Empty;
 
-            if (!DateTime.TryParseExact(date, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
-            {
-                errorMessage = "Data inválida. ";
-                return false;
-            }
-
-            if (parsedDate > DateTime.Today)
-            {
-                errorMessage = "Data não pode ser futura. ";
-                return false;
-            }
-
+        if (string.IsNullOrEmpty(date))
             return true;
+
+        if (!DateTime.TryParseExact(date, "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None,
+                out DateTime parsedDate))
+        {
+            errorMessage = "Data inválida. ";
+            return false;
         }
 
-        private void DateTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        if (parsedDate > DateTime.Today)
         {
-            e.Handled = !IsTextAllowed(e.Text);
+            errorMessage = "Data não pode ser futura. ";
+            return false;
+        }
 
-            TextBox textBox = sender as TextBox;
-            if (textBox != null)
+        if (StartDateTextBox.Text != string.Empty && EndDateTextBox.Text != string.Empty)
+        {
+            DateTime startDate = DateTime.ParseExact(StartDateTextBox.Text, "dd/MM/yyyy", null);
+            DateTime endDate = DateTime.ParseExact(EndDateTextBox.Text, "dd/MM/yyyy", null);
+
+            if (startDate > endDate)
             {
-                string text = textBox.Text;
-
-                if (e.Text.Length > 0)
-                {
-                    text += e.Text;
-                }
-
-                if (text.Length == 2 || text.Length == 5)
-                {
-                    textBox.Text = text + "/";
-                    textBox.CaretIndex = textBox.Text.Length;
-                }
+                errorMessage = "A data de início não pode ser maior que a data de fim. ";
+                return false;
             }
         }
 
-        private static bool IsTextAllowed(string text)
+        return true;
+    }
+
+
+    private void DateTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+    {
+        e.Handled = !IsTextAllowed(e.Text);
+
+        TextBox textBox = sender as TextBox;
+        if (textBox != null)
         {
-            Regex regex = new Regex("[^0-9]+"); // Somente números
-            return !regex.IsMatch(text);
+            string text = textBox.Text;
+
+            if (e.Text.Length > 0)
+            {
+                text += e.Text;
+            }
+
+            if (text.Length == 3 || text.Length == 6)
+            {
+                textBox.Text += "/";
+                textBox.CaretIndex = textBox.Text.Length;
+            }
         }
+    }
+
+    private static bool IsTextAllowed(string text)
+    {
+        Regex regex = new Regex("[^0-9]+");
+        return !regex.IsMatch(text);
+    }
 
     private async void NextPageClick(object sender, RoutedEventArgs e)
     {
@@ -142,5 +159,16 @@ public partial class MainWindow : Window
         {
             MessageBox.Show($"Erro: {ex.Message}", "Erro", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+    
+    private async void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        await _mainViewModel.LoadExpectativasAsync();
+    }
+    
+    private void OpenExportModalClick(object sender, RoutedEventArgs e)
+    {
+        ExportWindow exportWindow = new ExportWindow();
+        exportWindow.ShowDialog();
     }
 }

@@ -4,73 +4,88 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PoloChallenge"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="MainWindow" MinHeight="350" MaxHeight="380" Width="1000">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="60" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="50" />
-        </Grid.RowDefinitions>
+        Title="MainWindow" MinHeight="350" MaxHeight="380" Width="1000"
+        WindowStartupLocation="CenterOwner">
+    <xctk:BusyIndicator x:Name="BusyIndicator" IsBusy="{Binding IsBusy}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="50" />
+            </Grid.RowDefinitions>
 
-        <Grid Grid.Row="0">
-            <Grid>
-                <Label Content="Inicio:" FontSize="8" HorizontalAlignment="Left" VerticalAlignment="Center"
-                       Margin="50, 0, 0, 16" />
-                <TextBox x:Name="StartDateTextBox" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80"
-                         Height="17" Margin="80, 0, 0, 18" FontSize="8" Padding="0, 2, 0, 0 "
-                         PreviewTextInput="DateTextBox_PreviewTextInput" />
-                <Label Content="Data: " FontSize="10" Width="Auto" HorizontalAlignment="Left"
-                       VerticalAlignment="Center"
-                       Margin="10,0,0,0" />
+            <Grid Grid.Row="0">
+                <Grid>
+                    <Label Content="Inicio:" FontSize="8" HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Margin="50, 0, 0, 16" />
+                    <TextBox x:Name="StartDateTextBox" HorizontalAlignment="Left" VerticalAlignment="Center" Width="80"
+                             Height="17" Margin="80, 0, 0, 18" FontSize="8" Padding="0, 2, 0, 0 "
+                             PreviewTextInput="DateTextBox_PreviewTextInput" />
+                    <Label Content="Data: " FontSize="10" Width="Auto" HorizontalAlignment="Left"
+                           VerticalAlignment="Center"
+                           Margin="10,0,0,0" />
 
 
-                <Label Content="Fim:" FontSize="8" HorizontalAlignment="Left" VerticalAlignment="Center"
-                       Margin="50, 16, 0, 0" />
-                <TextBox x:Name="EndDateTextBox" HorizontalAlignment="Left" FontSize="8" VerticalAlignment="Center"
-                         Width="80"
-                         Height="17" Margin="80, 18, 0, 0" Padding="0, 2, 0, 0 "
-                         PreviewTextInput="DateTextBox_PreviewTextInput" />
+                    <Label Content="Fim:" FontSize="8" HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Margin="50, 16, 0, 0" />
+                    <TextBox x:Name="EndDateTextBox" HorizontalAlignment="Left" FontSize="8" VerticalAlignment="Center"
+                             Width="80"
+                             Height="17" Margin="80, 18, 0, 0" Padding="0, 2, 0, 0 "
+                             PreviewTextInput="DateTextBox_PreviewTextInput" />
+                </Grid>
+
+                <ComboBox FontSize="10" x:Name="IndicadorComboBox" Width="160" Height="25" Padding="5, 5, 0, 0"
+                          SelectedIndex="0" Margin="180, 0, 0, 0"
+                          HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <ComboBoxItem>Escolha um Indicador</ComboBoxItem>
+                    <ComboBoxItem>IPCA</ComboBoxItem>
+                    <ComboBoxItem>IGP-M</ComboBoxItem>
+                    <ComboBoxItem>Selic</ComboBoxItem>
+                </ComboBox>
+
+                <Button Content="Carregar Dados" FontSize="10" Click="LoadData" HorizontalAlignment="Left"
+                        VerticalAlignment="Center"
+                        Height="25"
+                        Margin="355, 0, 0, 0" Width="130" />
+                <TextBlock x:Name="ErrorMessageTextBlock"
+                           Grid.Row="1"
+                           Margin="180, 0,0,0"
+                           Foreground="Red"
+                           FontSize="8.5"
+                           Width="180"
+                           Height="25"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap" />
             </Grid>
 
-            <ComboBox FontSize="10" x:Name="IndicadorComboBox" Width="160" Height="25" Padding="5, 5, 0, 0"
-                      SelectedIndex="0" Margin="180, 0, 0, 0"
-                      HorizontalAlignment="Left" VerticalAlignment="Center">
-                <ComboBoxItem>Escolha um Indicador</ComboBoxItem>
-                <ComboBoxItem>IPCA</ComboBoxItem>
-                <ComboBoxItem>IGP-M</ComboBoxItem>
-                <ComboBoxItem>Selic</ComboBoxItem>
-            </ComboBox>
+            <DataGrid Grid.Row="1" ItemsSource="{Binding Expectativas}" AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      IsReadOnly="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,4,10,10">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Indicador" Binding="{Binding Indicador}" Width="*" />
+                    <DataGridTextColumn Header="Data" Binding="{Binding Data}" Width="auto" />
+                    <DataGridTextColumn Header="Data Referência" Binding="{Binding DataReferencia}" Width="*" />
+                    <DataGridTextColumn Header="Média" Binding="{Binding Media}" Width="auto" />
+                    <DataGridTextColumn Header="Mediana" Binding="{Binding Mediana}" Width="auto" />
+                    <DataGridTextColumn Header="Desvio Padrão" Binding="{Binding DesvioPadrao}" Width="auto" />
+                    <DataGridTextColumn Header="Mínimo" Binding="{Binding Minimo}" Width="auto" />
+                    <DataGridTextColumn Header="Máximo" Binding="{Binding Maximo}" Width="auto" />
+                    <DataGridTextColumn Header="N° de Respondentes" Binding="{Binding NumeroRespondentes}" Width="*" />
+                    <DataGridTextColumn Header="Base de Cálculo" Binding="{Binding BaseCalculo}" Width="*" />
+                </DataGrid.Columns>
+            </DataGrid>
 
-            <Button Content="Carregar Dados" FontSize="10" Click="LoadData" HorizontalAlignment="Left"
-                    VerticalAlignment="Center"
-                    Height="25"
-                    Margin="355, 0, 0, 0" Width="130" />
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Button Content="&lt;" Width="30" Click="PreviousPageClick" />
+                <TextBlock Text="{Binding CurrentPage}" VerticalAlignment="Center" Margin="10,0" />
+                <Button Content="&gt;" Width="30" Click="NextPageClick" />
+                <Button Content="Exportar" Width="100" Margin="30, 0, 0,0" Click="OpenExportModalClick"
+                        IsEnabled="{Binding HasData}" />
+            </StackPanel>
         </Grid>
-        <TextBlock x:Name="ErrorMessageTextBlock" Grid.Row="1" Margin="10,0,0,0" Foreground="Red" />
-
-        <DataGrid Grid.Row="1" ItemsSource="{Binding Expectativas}" AutoGenerateColumns="False" CanUserAddRows="False"
-                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                  IsReadOnly="True" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,4,10,10">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Indicador" Binding="{Binding Indicador}" Width="*" />
-                <DataGridTextColumn Header="Data" Binding="{Binding Data}" Width="auto" />
-                <DataGridTextColumn Header="Data Referência" Binding="{Binding DataReferencia}" Width="*" />
-                <DataGridTextColumn Header="Média" Binding="{Binding Media}" Width="auto" />
-                <DataGridTextColumn Header="Mediana" Binding="{Binding Mediana}" Width="auto" />
-                <DataGridTextColumn Header="Desvio Padrão" Binding="{Binding DesvioPadrao}" Width="auto" />
-                <DataGridTextColumn Header="Mínimo" Binding="{Binding Minimo}" Width="auto" />
-                <DataGridTextColumn Header="Máximo" Binding="{Binding Maximo}" Width="auto" />
-                <DataGridTextColumn Header="N° de Respondentes" Binding="{Binding NumeroRespondentes}" Width="*" />
-                <DataGridTextColumn Header="Base de Cálculo" Binding="{Binding BaseCalculo}" Width="*" />
-            </DataGrid.Columns>
-        </DataGrid>
-
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Button Content="&lt;" Width="30" Click="PreviousPageClick" />
-            <TextBlock Text="{Binding CurrentPage}" VerticalAlignment="Center" Margin="10,0" />
-            <Button Content="&gt;" Width="30" Click="NextPageClick" />
-        </StackPanel>
-    </Grid>
+    </xctk:BusyIndicator>
 </Window>

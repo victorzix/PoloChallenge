@@ -29,7 +29,7 @@ public class ApiServices : IApiService
             builder.Path = "olinda/servico/Expectativas/versao/v1/odata/ExpectativaMercadoMensais";
             var query = new StringBuilder();
 
-            query.Append($"%24skip={skip}&%24top=10");
+            query.Append($"%24skip={skip}&%24top=100");
 
             query.Append("&%24orderby=Data%20asc");
 
